@@ -1,0 +1,7 @@
+token.txt
+data/
+PetMove.exe
+技术方案.md
+node_modules/
+*.log
+pet-sync-state.json

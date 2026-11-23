@@ -1,0 +1,10 @@
+{
+  "name": "鱼信",
+  "short_name": "鱼信",
+  "description": "哥哥和鱼鱼的自家聊天+空间",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#0ea5b7",
+  "icons": []
+}

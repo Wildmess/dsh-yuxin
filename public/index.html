@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#061420">
+<title>鱼信</title>
+<link rel="manifest" href="/manifest.json">
+<script>
+window.addEventListener('error', function (e) {
+  try {
+    var d = document.createElement('div');
+    d.style.cssText = 'position:fixed;bottom:64px;left:8px;right:8px;background:#fee2e2;color:#991b1b;padding:10px;font-size:12px;z-index:9999;border-radius:10px;white-space:pre-wrap;word-break:break-all';
+    d.textContent = '页面错误: ' + (e.message || '未知') + ' @行' + (e.lineno || '?');
+    document.body.appendChild(d);
+    setTimeout(function () { d.remove(); }, 30000);
+  } catch (x) {}
+});
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: #e0f2fe;
+    background:
+      radial-gradient(1200px 700px at 85% -10%, rgba(14, 116, 144, .35), transparent 60%),
+      radial-gradient(900px 600px at -10% 110%, rgba(30, 64, 175, .30), transparent 60%),
+      linear-gradient(165deg, #061420 0%, #0a2540 55%, #082f49 100%);
+    background-attachment: fixed;
+    height: 100vh;
+    display: flex; flex-direction: column;
+  }
+  header {
+    background: rgba(6, 24, 39, .55);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(103, 232, 249, .14);
+    padding: 14px 18px; font-weight: 700; font-size: 17px; letter-spacing: 1px;
+    display: flex; align-items: center; gap: 10px;
+    color: #a5f3fc;
+    text-shadow: 0 0 18px rgba(34, 211, 238, .45);
+  }
+  header .dot { width: 9px; height: 9px; border-radius: 50%; background: #22d3ee; box-shadow: 0 0 12px #22d3ee; }
+  main { flex: 1; overflow-y: auto; padding: 14px; }
+  .page { display: none; } .page.active { display: block; }
+  .card {
+    background: rgba(255, 255, 255, .055);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(103, 232, 249, .12);
+    border-radius: 14px; padding: 13px; margin-bottom: 12px;
+    box-shadow: 0 4px 18px rgba(2, 12, 27, .35);
+    animation: rise .35s ease both;
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .card .meta { font-size: 12px; color: #67e8f9; opacity: .75; margin-bottom: 7px; display: flex; justify-content: space-between; }
+  .card .text { font-size: 15px; line-height: 1.6; word-break: break-all; color: #e0f2fe; }
+  .like { margin-top: 9px; font-size: 13px; color: #fda4af; background: rgba(244, 63, 94, .08); border: 1px solid rgba(244, 63, 94, .18); border-radius: 8px; cursor: pointer; padding: 4px 10px; transition: .2s; }
+  .like:hover { background: rgba(244, 63, 94, .16); }
+  textarea, input {
+    width: 100%; border: 1px solid rgba(103, 232, 249, .16); border-radius: 12px;
+    padding: 12px; font-size: 15px; margin-bottom: 10px; font-family: inherit;
+    background: rgba(255, 255, 255, .05); color: #e0f2fe; outline: none; transition: .25s;
+  }
+  textarea { height: 74px; resize: none; }
+  textarea:focus, input:focus { border-color: rgba(34, 211, 238, .55); box-shadow: 0 0 0 3px rgba(34, 211, 238, .12); }
+  button.primary {
+    width: 100%;
+    background: linear-gradient(135deg, #0891b2, #2563eb);
+    color: #f0fdff; border: none; border-radius: 12px; padding: 13px;
+    font-size: 16px; font-weight: 700; letter-spacing: 2px; cursor: pointer;
+    box-shadow: 0 6px 20px rgba(8, 145, 178, .35); transition: .25s;
+  }
+  button.primary:hover { filter: brightness(1.15); transform: translateY(-1px); }
+  button.primary:active { transform: translateY(1px); }
+  .bubble {
+    max-width: 80%; padding: 11px 14px; margin-bottom: 10px;
+    font-size: 15px; line-height: 1.55; word-break: break-all;
+    animation: rise .3s ease both;
+  }
+  .bubble.me {
+    background: linear-gradient(135deg, #0e7490, #1d4ed8);
+    color: #ecfeff; margin-left: auto;
+    border-radius: 16px 16px 4px 16px;
+    box-shadow: 0 4px 16px rgba(14, 116, 144, .3);
+  }
+  .bubble.fish {
+    background: rgba(255, 255, 255, .07);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(103, 232, 249, .14);
+    border-radius: 16px 16px 16px 4px; color: #cffafe;
+  }
+  .hint { font-size: 12px; color: #7dd3fc; opacity: .55; text-align: center; padding: 10px; }
+  nav {
+    display: flex;
+    background: rgba(6, 24, 39, .65);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid rgba(103, 232, 249, .12);
+  }
+  nav button {
+    flex: 1; padding: 15px; background: none; border: none;
+    font-size: 15px; color: #64748b; cursor: pointer; font-weight: 600; transition: .2s;
+  }
+  nav button.active { color: #67e8f9; text-shadow: 0 0 14px rgba(103, 232, 249, .5); }
+</style>
+</head>
+<body>
+<header><span class="dot"></span> 鱼信 <span style="font-size:12px;opacity:.6;font-weight:400">只属于咱家</span></header>
+<main>
+  <div class="page active" id="page-chat">
+    <div id="chat-list"></div>
+    <div style="display:flex; gap:8px; margin-top:12px;">
+      <input id="chat-input" placeholder="跟鱼鱼说点什么…" onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="primary" style="width:auto; padding:10px 20px;" onclick="sendChat()">发送</button>
+    </div>
+    <div class="hint">聊天接鱼本体的线路二期开通 先验收界面♪</div>
+  </div>
+  <div class="page" id="page-posts">
+    <div class="card">
+      <textarea id="post-text" placeholder="今天想说点什么…"></textarea>
+      <button class="primary" onclick="sendPost()">发说说</button>
+    </div>
+    <div id="post-list"></div>
+  </div>
+  <div class="page" id="page-room">
+    <iframe id="room-frame" src="" style="width:100%;height:100%;border:none;border-radius:14px;background:rgba(255,255,255,.03)" allow="autoplay"></iframe>
+  </div>
+</main>
+<nav>
+  <button class="active" id="nav-chat" onclick="switchTab('chat')">💬 聊天</button>
+  <button id="nav-posts" onclick="switchTab('posts')">🌊 空间</button>
+  <button id="nav-room" onclick="switchTab('room')">🏠 房间</button>
+</nav>
+<script>
+// 链接带 ?token=xxx 时自动修正口令（口令输错的自救通道）
+const urlToken = new URLSearchParams(location.search).get('token');
+if (urlToken) localStorage.setItem('feiyu-token', urlToken);
+const TOKEN = localStorage.getItem('feiyu-token') || '';
+if (!TOKEN) {
+  const t = prompt('第一次使用 请输入访问口令（问鱼鱼要）：');
+  if (t) { localStorage.setItem('feiyu-token', t); location.reload(); }
+}
+const H = { 'Content-Type': 'application/json', 'X-Token': localStorage.getItem('feiyu-token') || '' };
+
+function switchTab(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'posts') loadPosts();
+  if (name === 'chat') renderChat();
+  if (name === 'room') {
+    const f = document.getElementById('room-frame');
+    if (!f.src) f.src = location.hostname === '127.0.0.1' || location.hostname === 'localhost'
+      ? 'http://127.0.0.1:13100/room/'
+      : 'http://' + location.hostname + ':13100/room/';
+  }
+}
+
+let chatHistory = [];
+function renderChat() {
+  const el = document.getElementById('chat-list');
+  el.innerHTML = chatHistory.map(m =>
+    `<div class="bubble ${m.who === 'me' ? 'me' : 'fish'}">${m.text}</div>`).join('');
+}
+async function sendChat() {
+  const inp = document.getElementById('chat-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  chatHistory.push({ who: 'me', text });
+  renderChat(); inp.value = '';
+  try {
+    const r = await fetch('/api/chat', { method: 'POST', headers: H, body: JSON.stringify({ text }) });
+    if (r.status === 401) {
+      const fix = new URLSearchParams(location.search).get('token');
+      if (fix) { localStorage.setItem('feiyu-token', fix); H['X-Token'] = fix; return sendChat(); }
+      localStorage.removeItem('feiyu-token'); location.reload(); return;
+    }
+    const j = await r.json();
+    chatHistory.push({ who: 'fish', text: j.reply || '(空)' });
+  } catch (e) { chatHistory.push({ who: 'fish', text: '(连接失败 ' + e.message + ')' }); }
+  renderChat();
+  const el = document.getElementById('chat-list');
+  el.scrollTop = el.scrollHeight;
+}
+async function loadPosts() {
+  try {
+    let r = await fetch('/api/posts', { headers: H });
+    if (r.status === 401) { const fix = new URLSearchParams(location.search).get('token'); if (fix) { localStorage.setItem('feiyu-token', fix); H['X-Token'] = fix; r = await fetch('/api/posts', { headers: H }); } }
+    const j = await r.json();
+    const el = document.getElementById('post-list');
+    el.innerHTML = (j.posts || []).map(p =>
+      `<div class="card"><div class="meta"><span>${p.author}</span><span>${(p.time||'').slice(0,16).replace('T',' ')}</span></div><div class="text">${p.text}</div><button class="like" onclick="likePost(${p.id})">❤️ ${p.likes || 0}</button></div>`).join('') || '<div class="hint">还没有说说 发第一条吧♪</div>';
+  } catch (e) { el.innerHTML = '<div class="hint">加载失败</div>'; }
+}
+async function sendPost() {
+  const inp = document.getElementById('post-text');
+  const text = inp.value.trim();
+  if (!text) return;
+  let r = await fetch('/api/posts', { method: 'POST', headers: H, body: JSON.stringify({ text, author: '哥哥' }) });
+  if (r.status === 401) { const fix = new URLSearchParams(location.search).get('token'); if (fix) { localStorage.setItem('feiyu-token', fix); H['X-Token'] = fix; r = await fetch('/api/posts', { method: 'POST', headers: H, body: JSON.stringify({ text, author: '哥哥' }) }); } }
+  inp.value = ''; loadPosts();
+}
+async function likePost(id) {
+  await fetch('/api/like', { method: 'POST', headers: H, body: JSON.stringify({ id }) });
+  loadPosts();
+}
+</script>
+</body>
+</html>
