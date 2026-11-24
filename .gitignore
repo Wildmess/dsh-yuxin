@@ -5,3 +5,11 @@ PetMove.exe
 node_modules/
 *.log
 pet-sync-state.json
+dsh-mint.mjs
+session-api-readme.md
+gateway-readme.md
+gw-*.js
+cc-index.js
+auth-index.js
+sc-typert-host.js
+*.cookie.txt

@@ -157,17 +157,37 @@ function switchTab(name) {
 }
 
 let chatHistory = [];
+function escHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function fmtMarkdown(raw) {
+  let s = escHtml(raw || '');
+  // markdown 图片（鱼的表情包）：DSH 地址换成自家代理，手机也能看
+  s = s.replace(/!\[([^\]]*)\]\((https?:\/\/[^)]+?)\)/g, (m, alt, url) => {
+    const proxied = url.replace(/^https?:\/\/127\.0\.0\.1:62586/, '/api/dsh')
+                       .replace(/^https?:\/\/[^/]+:62586/, '/api/dsh');
+    return `<img src="${proxied}" alt="${alt}" style="max-width:120px;border-radius:10px;display:block;margin:6px 0;">`;
+  });
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+  s = s.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  return s.replace(/\n/g, '<br>');
+}
 function renderChat() {
   const el = document.getElementById('chat-list');
   el.innerHTML = chatHistory.map(m =>
-    `<div class="bubble ${m.who === 'me' ? 'me' : 'fish'}">${m.text}</div>`).join('');
+    `<div class="bubble ${m.who === 'me' ? 'me' : 'fish'}">${m.who === 'me' ? escHtml(m.text) : fmtMarkdown(m.text)}</div>`).join('');
 }
 async function sendChat() {
   const inp = document.getElementById('chat-input');
   const text = inp.value.trim();
   if (!text) return;
   chatHistory.push({ who: 'me', text });
+  const thinking = { who: 'fish', text: '鱼在想……' };
+  chatHistory.push(thinking);
   renderChat(); inp.value = '';
+  const el0 = document.getElementById('chat-list');
+  el0.scrollTop = el0.scrollHeight;
   try {
     const r = await fetch('/api/chat', { method: 'POST', headers: H, body: JSON.stringify({ text }) });
     if (r.status === 401) {
@@ -176,8 +196,8 @@ async function sendChat() {
       localStorage.removeItem('feiyu-token'); location.reload(); return;
     }
     const j = await r.json();
-    chatHistory.push({ who: 'fish', text: j.reply || '(空)' });
-  } catch (e) { chatHistory.push({ who: 'fish', text: '(连接失败 ' + e.message + ')' }); }
+    thinking.text = j.reply || '(空)';
+  } catch (e) { thinking.text = '(连接失败 ' + e.message + ')'; }
   renderChat();
   const el = document.getElementById('chat-list');
   el.scrollTop = el.scrollHeight;
